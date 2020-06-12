@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://112.124.19.119/mail_oms
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+
+server:
+  port: 9000
