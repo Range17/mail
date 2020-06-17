@@ -1,14 +1,11 @@
 package com.range.mail.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.range.mail.product.entity.CategoryEntity;
 import com.range.mail.product.service.CategoryService;
@@ -22,13 +19,22 @@ import com.range.common.utils.R;
  *
  * @author range
  * @email range27@gmail.com
- * @date 2020-06-12 22:36:32
+ * @date 2020-06-12 22:36:32c
  */
 @RestController
 @RequestMapping("product/category")
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
+
+    /**
+     * 列表
+     */
+    @GetMapping("/list/tree")
+    public List<CategoryEntity> list(){
+        List<CategoryEntity> categoryEntities = categoryService.listWithTree();
+        return categoryEntities;
+    }
 
     /**
      * 列表
