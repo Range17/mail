@@ -17,9 +17,13 @@ public class MallCorsConfiguration {
     public CorsWebFilter corsWebFilter(){
         UrlBasedCorsConfigurationSource source=new UrlBasedCorsConfigurationSource();
         CorsConfiguration corsConfiguration = new CorsConfiguration();
+        //允许所有请求头
         corsConfiguration.addAllowedHeader("*");
+        //允许所有方法
         corsConfiguration.addAllowedMethod("*");
+        //允许所有来源
         corsConfiguration.addAllowedOrigin("*");
+        //是否携带cookie进行过滤
         corsConfiguration.setAllowCredentials(true);
 
         source.registerCorsConfiguration("/**",corsConfiguration);
