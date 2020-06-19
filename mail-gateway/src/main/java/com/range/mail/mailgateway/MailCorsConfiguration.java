@@ -11,7 +11,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 /**
  * 过滤，允许所有的请求跨域
  */
-public class MallCorsConfiguration {
+public class MailCorsConfiguration {
 
     @Bean
     public CorsWebFilter corsWebFilter(){
