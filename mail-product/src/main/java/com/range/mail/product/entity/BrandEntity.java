@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.range.common.valid.AddGroup;
+import com.range.common.valid.ListValue;
 import com.range.common.valid.UpdateGroup;
 import lombok.Data;
 import org.apache.ibatis.annotations.Update;
@@ -51,6 +52,7 @@ public class BrandEntity implements Serializable {
 	/**
 	 * 显示状态[0-不显示；1-显示]
 	 */
+	@ListValue(value = {0, 1}, groups = {AddGroup.class})
 	private Integer showStatus;
 	/**
 	 * 检索首字母
