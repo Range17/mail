@@ -1,5 +1,7 @@
 package com.range.mail.product.service.impl;
 
+import com.range.mail.product.entity.CategoryBrandRelationEntity;
+import com.range.mail.product.service.CategoryBrandRelationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     CategoryDao categoryDao;
+
+    @Autowired
+    CategoryBrandRelationService categoryBrandRelationService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -64,6 +69,18 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         //将集合顺序反转了
         Collections.reverse(parentPath);
         return parentPath.toArray(new Long[path.size()]);
+    }
+
+    /**
+     * 级联更新所有关联的数据
+     * @param category
+     */
+    @Override
+    public void updateCascade(CategoryEntity category) {
+        this.updateById(category);
+        categoryBrandRelationService.updateCategory(category.getCatId(),category.getName());
+
+
     }
 
     private List<Long> findParentPath(Long catelogId, List<Long> path) {
