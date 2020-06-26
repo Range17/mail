@@ -3,7 +3,9 @@ package com.range.mail.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.range.common.utils.PageUtils;
 import com.range.mail.product.entity.AttrAttrgroupRelationEntity;
+import com.range.mail.product.vo.AttrGroupRelationVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,5 +18,7 @@ import java.util.Map;
 public interface AttrAttrgroupRelationService extends IService<AttrAttrgroupRelationEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    void saveBatch(List<AttrGroupRelationVo> vos);
 }
 
