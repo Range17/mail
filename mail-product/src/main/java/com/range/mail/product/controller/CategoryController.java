@@ -31,9 +31,9 @@ public class CategoryController {
      * 列表
      */
     @GetMapping("/list/tree")
-    public List<CategoryEntity> list(){
+    public R list(){
         List<CategoryEntity> categoryEntities = categoryService.listWithTree();
-        return categoryEntities;
+        return R.ok().put("data",categoryEntities);
     }
 
     /**
