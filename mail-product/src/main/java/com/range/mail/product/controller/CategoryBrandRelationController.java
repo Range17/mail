@@ -3,9 +3,13 @@ package com.range.mail.product.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.additional.query.impl.QueryChainWrapper;
+import com.range.mail.product.entity.BrandEntity;
+import com.range.mail.product.vo.BrandVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,6 +47,25 @@ public class CategoryBrandRelationController {
         return R.ok().put("data", categoryBrandRelationEntityList);
     }
 
+
+    /**
+     * /product/categorybrandrelation/brands/list
+     */
+
+    @GetMapping("/brands/list")
+    //RequestParam中的加的为该值为必须的，没有该值就不进入方法
+    public R relationBrandsList(@RequestParam(value = "catId",required = true) Long catId){
+        List<BrandEntity> brandEntityList=categoryBrandRelationService.getBrandsByCatId(catId);
+        List<BrandVo> brandVos = brandEntityList.stream().map(brandEntity -> {
+            BrandVo vo = new BrandVo();
+            vo.setBrandId(brandEntity.getBrandId());
+            vo.setBrandName(brandEntity.getName());
+            return vo;
+        }).collect(Collectors.toList());
+
+        return R.ok().put("data",brandVos);
+
+    }
 
 
 
