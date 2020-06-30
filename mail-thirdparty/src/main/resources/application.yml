@@ -1,0 +1,17 @@
+#spring:
+#  cloud:
+#    nacos:
+#      discovery:
+#        server-addr: 127.0.0.1:8848
+#    alicloud:
+#      access-key: LTAI4G9J9AM44c8toFGLTxYe
+#      secret-key: PLwItM8Clco3XspZI1piMLLX1MQmBI
+#      oss:
+#        endpoint: oss-cn-shenzhen.aliyuncs.com
+#        bucket: mail-images-range
+#
+#
+#  application:
+#    name: mail-third-party
+#server:
+#  port: 30000
