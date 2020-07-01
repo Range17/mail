@@ -2,7 +2,9 @@ package com.range.mail.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.range.common.utils.PageUtils;
+import com.range.mail.product.entity.SpuInfoDescEntity;
 import com.range.mail.product.entity.SpuInfoEntity;
+import com.range.mail.product.vo.SpuSaveVo;
 
 import java.util.Map;
 
@@ -16,5 +18,11 @@ import java.util.Map;
 public interface SpuInfoService extends IService<SpuInfoEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+
+    void saveSpuInfo( SpuSaveVo vo );
+
+    void saveBaseSpuInfo(SpuInfoEntity infoEntity);
+
 }
 

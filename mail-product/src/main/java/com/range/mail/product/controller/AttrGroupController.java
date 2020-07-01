@@ -10,6 +10,7 @@ import com.range.mail.product.service.AttrAttrgroupRelationService;
 import com.range.mail.product.service.AttrService;
 import com.range.mail.product.service.CategoryService;
 import com.range.mail.product.vo.AttrGroupRelationVo;
+import com.range.mail.product.vo.AttrGroupWithAttrsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +43,13 @@ public class AttrGroupController {
     @Autowired
     private AttrAttrgroupRelationService relationService;
 
+
+    @GetMapping("/{catelogId}/withattr")
+    public R getAttrGroupWithAttrs(@PathVariable("catelogId") Long catelogId){
+
+        List<AttrGroupWithAttrsVo> attrGroupWithAttrsVos = attrGroupService.getAttrGroupWithAttrsByCatelogId(catelogId);
+        return R.ok().put("data",attrGroupWithAttrsVos);
+    }
 
     @PostMapping("/attr/relation")
     public R addRelation(@RequestBody List<AttrGroupRelationVo> vos){
