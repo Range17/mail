@@ -1,5 +1,7 @@
 package com.range.mail.product.service.impl;
 
+import com.range.common.exception.RRException;
+import com.range.common.exception.RRExceptionHandler;
 import com.range.common.to.SkuReductionTo;
 import com.range.common.to.SpuBoundTo;
 import com.range.common.utils.R;
@@ -176,10 +178,14 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 SkuReductionTo skuReductionTo = new SkuReductionTo();
                 BeanUtils.copyProperties(item,skuReductionTo);
                 skuReductionTo.setSkuId(skuId);
-                if(skuReductionTo.getFullCount() >0 || skuReductionTo.getFullPrice().compareTo(new BigDecimal("0"))==1){
-                    R r1 = couponFeignService.saveSkuReduction(skuReductionTo);
-                    if(r1.getCode() != 0){
-                        log.error("远程保存sku优惠信息调用失败");
+                if (skuReductionTo.getFullCount() > 0 || skuReductionTo.getFullPrice().compareTo(new BigDecimal("0")) == 1) {
+                    try {
+                        R r1 = couponFeignService.saveSkuReduction(skuReductionTo);
+                        if (r1.getCode() != 0) {
+                            log.error("远程保存sku优惠信息调用失败");
+                        }
+                    }catch (Exception e){
+                        throw new RRException("调用远程服务超时");
                     }
                 }
             });

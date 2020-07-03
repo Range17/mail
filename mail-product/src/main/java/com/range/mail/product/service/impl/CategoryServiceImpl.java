@@ -45,8 +45,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
         //获取所有分类下的子分类
         List<CategoryEntity> classifyCategoryEntityList = categoryEntityList.stream().filter(categoryEntity -> categoryEntity.getParentCid() == 0)
-                .map((categoryEntity) -> {
-                    categoryEntity.setChildCategoryEntity(getChildrenCategoryEntity(categoryEntity, categoryEntityList));
+                .map(categoryEntity -> {
+                    categoryEntity.setChildren(getChildrenCategoryEntity(categoryEntity, categoryEntityList));
                     return categoryEntity;
                 }).sorted((menu1, menu2) -> {
                     return (menu1.getSort() == null ? 0 : menu1.getSort()) - (menu2.getSort() == null ? 0 : menu2.getSort());
@@ -104,7 +104,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
         List<CategoryEntity> childCategoryEntityList = categoryEntityList.stream().filter(categoryEntity1 -> categoryEntity.getCatId().equals(categoryEntity1.getParentCid()))
                 .map(categoryEntity1 -> {
-                    categoryEntity1.setChildCategoryEntity(getChildrenCategoryEntity(categoryEntity1, categoryEntityList));
+                    categoryEntity1.setChildren(getChildrenCategoryEntity(categoryEntity1, categoryEntityList));
                     return categoryEntity1;
                 }).sorted((menu1, menu2) -> {
                     return (menu1.getSort() == null ? 0 : menu1.getSort()) - (menu2.getSort() == null ? 0 : menu2.getSort());

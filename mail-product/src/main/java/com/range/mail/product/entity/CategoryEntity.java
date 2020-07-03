@@ -65,5 +65,5 @@ public class CategoryEntity implements Serializable {
 
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	@TableField(exist = false )
-	private List<CategoryEntity> childCategoryEntity;
+	private List<CategoryEntity> children;
 }

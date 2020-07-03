@@ -97,7 +97,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         IPage<AttrEntity> page = this.page(
                 new Query<AttrEntity>().getPage(params),
-                new QueryWrapper<AttrEntity>()
+               queryWrapper
         );
 
         PageUtils pageUtils = new PageUtils(page);
