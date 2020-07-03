@@ -7,7 +7,6 @@ import com.range.mail.product.entity.*;
 import com.range.mail.product.feign.CouponFeignService;
 import com.range.mail.product.service.*;
 import com.range.mail.product.vo.*;
-import com.sun.xml.internal.bind.v2.model.core.ID;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,10 +112,16 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         SpuBoundTo spuBoundTo = new SpuBoundTo();
         BeanUtils.copyProperties(bounds,spuBoundTo);
         spuBoundTo.setSpuId(infoEntity.getId());
-        R r = couponFeignService.saveSpuBounds(spuBoundTo);
-        if(r.getCode() != 0){
-            log.error("远程保存积分信息调用失败");
+        try{
+            R r = couponFeignService.saveSpuBounds(spuBoundTo);
+            if(r.getCode() != 0){
+                log.error("远程保存积分信息调用失败");
+            }
+        }catch (Exception e){
+            log.error("调用服务超时");
+            e.printStackTrace();
         }
+
 
 
         //5、保存当前spu对应的所有sku信息
@@ -169,7 +174,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
                 //4、sku的优惠、满减等信息：gulimail_sms->sms_sku_ladder\sms_sku_full_reduction\sms_member_price
                 SkuReductionTo skuReductionTo = new SkuReductionTo();
-                BeanUtils.copyProperties(skuReductionTo,item);
+                BeanUtils.copyProperties(item,skuReductionTo);
                 skuReductionTo.setSkuId(skuId);
                 if(skuReductionTo.getFullCount() >0 || skuReductionTo.getFullPrice().compareTo(new BigDecimal("0"))==1){
                     R r1 = couponFeignService.saveSkuReduction(skuReductionTo);
