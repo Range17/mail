@@ -1,8 +1,11 @@
 package com.range.mail.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.range.mail.product.entity.ProductAttrValueEntity;
+import com.range.mail.product.service.ProductAttrValueService;
 import com.range.mail.product.vo.AttrGroupRelationVo;
 import com.range.mail.product.vo.AttrRespVo;
 import com.range.mail.product.vo.AttrVo;
@@ -29,9 +32,21 @@ public class AttrController {
     @Autowired
     private AttrService attrService;
 
+    @Autowired
+    private ProductAttrValueService productAttrValueService;
 
 
+    /**
+     * 获取spu规格
+     * @param spuId
+     * @return
+     */
+    @GetMapping("/base/listforspu/{spuId}")
+    public R baseAttrListforspu(@PathVariable("spuId") Long spuId){
 
+        List<ProductAttrValueEntity> entities = productAttrValueService.baseAttrlistforspu(spuId);
+        return R.ok().put("data",entities);
+    }
 
     //product/attr/sale/list/{catelogId}
     //product/attr/base/list/{catelogId}
@@ -75,6 +90,12 @@ public class AttrController {
 
 
 
+
+    @PostMapping("/update/{spuId}")
+    public R update(@PathVariable("spuId") Long spuId,@RequestBody List<ProductAttrValueEntity> entities){
+        productAttrValueService.updateSpuAttr(spuId,entities);
+        return R.ok();
+    }
 
     /**
      * 修改
