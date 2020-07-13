@@ -3,10 +3,20 @@ package com.range.mail.search;
 import com.alibaba.fastjson.JSON;
 import com.range.mail.search.config.ElasticSearchConfig;
 import lombok.Data;
+import lombok.ToString;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +31,61 @@ public class MailSearchApplicationTests {
 
     @Autowired
     private RestHighLevelClient restHighLevelClient;
+
+
+    /**
+     * 构造复杂查询
+     */
+    @Test
+    public void searchData() throws IOException{
+        //1、创建检索请求
+        SearchRequest searchRequest = new SearchRequest();
+        //2、指定索引
+        searchRequest.indices("bank");
+        //3、指定dsl,检索条件
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
+        //构造检索条件
+//        searchSourceBuilder.query();
+//        searchSourceBuilder.from();
+//        searchSourceBuilder.size();
+//        searchSourceBuilder.aggregation();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("address", "mill"));
+
+        //按照年龄的值的聚合
+        TermsAggregationBuilder ageAgg = AggregationBuilders.terms("ageAgg").field("age").size(10);
+        searchSourceBuilder.aggregation(ageAgg);
+
+        //计算平均薪资
+        TermsAggregationBuilder balanceAvg = AggregationBuilders.terms("balanceAvg").field("balance");
+        searchSourceBuilder.aggregation(balanceAvg);
+
+        //打印检索语句
+        System.out.println(searchSourceBuilder.toString());
+
+
+        searchRequest.source(searchSourceBuilder);
+
+        //4、执行检索
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest,ElasticSearchConfig.COMMON_OPTIONS);
+
+        //5、分析结果
+        System.out.println(searchResponse.toString());
+
+        //6、获取所有查到的数据
+        SearchHits hits = searchResponse.getHits();
+        SearchHit[] searchHits = hits.getHits();
+        for (SearchHit hit:searchHits) {
+            String string = hit.getSourceAsString();
+            Account account = JSON.parseObject(string, Account.class);
+            System.out.println("account："+account);
+        }
+
+
+
+
+    }
+
 
     /**
      * 测试存储数据到es
@@ -52,6 +117,22 @@ public class MailSearchApplicationTests {
         private String userName;
         private String gender;
         private Integer age;
+    }
+
+    @ToString
+    @Data
+    static class Account{
+        private int account_number;
+        private int balance;
+        private String firstName;
+        private String lastName;
+        private int age;
+        private String gender;
+        private String address;
+        private String employee;
+        private String email;
+        private String city;
+        private String state;
     }
 
     @Test
