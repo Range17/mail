@@ -14,8 +14,12 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.Avg;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,7 +86,17 @@ public class MailSearchApplicationTests {
         }
 
 
+        //获取这次检索到的分析信息
+        Aggregations aggregations = searchResponse.getAggregations();
 
+        Terms ageAgg1 = aggregations.get("ageAgg");
+        for (Terms.Bucket bucket:ageAgg1.getBuckets()) {
+            String keyAsString = bucket.getKeyAsString();
+            System.out.println("年龄：" + keyAsString + "==>" + bucket.getDocCount());
+        }
+
+//        Avg balanceAvg1 = aggregations.get("balanceAvg");
+//        System.out.println("平均薪资："+balanceAvg1.getValue());
 
     }
 
