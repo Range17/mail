@@ -1,14 +1,12 @@
 package com.range.mail.ware.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.range.mail.ware.vo.SkuHasStockVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.range.mail.ware.entity.WareSkuEntity;
 import com.range.mail.ware.service.WareSkuService;
@@ -27,8 +25,22 @@ import com.range.common.utils.R;
 @RestController
 @RequestMapping("ware/waresku")
 public class WareSkuController {
+
     @Autowired
     private WareSkuService wareSkuService;
+
+    /**
+     * 查询sku是否有库存
+     */
+
+    @PostMapping("/hasstock")
+    public R<List<SkuHasStockVo>> getSkuHasStock(@RequestBody List<Long> skuIds){
+        List<SkuHasStockVo> vos = wareSkuService.getSkuHasStock(skuIds);
+
+        R<List<SkuHasStockVo>> ok = R.ok();
+        ok.setData(vos);
+        return ok;
+    }
 
     /**
      * 列表
