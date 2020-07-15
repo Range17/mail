@@ -2,6 +2,8 @@ package com.range.mail.product.service.impl;
 
 import com.range.mail.product.entity.CategoryBrandRelationEntity;
 import com.range.mail.product.service.CategoryBrandRelationService;
+import com.range.mail.product.vo.Catelog2Vo;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +85,38 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     }
 
+    @Override
+    public List<CategoryEntity> getLevel1Categories() {
+        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+    }
+
+    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJson() {
+        List<CategoryEntity> selectList = baseMapper.selectList(null);
+        List<CategoryEntity> level1Categories = getParent_cid(selectList, 0L);
+
+        Map<String, List<Catelog2Vo>> parentCid = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            List<CategoryEntity> categoryEntities = getParent_cid(selectList, v.getCatId());
+            List<Catelog2Vo> catelog2VOS = null;
+            if (!CollectionUtils.isEmpty(categoryEntities)) {
+                catelog2VOS = categoryEntities.stream().map(l2 -> {
+                    Catelog2Vo catelog2VO = new Catelog2Vo(v.getCatId().toString(), null, l2.getCatId().toString(), l2.getName());
+                    List<CategoryEntity> level3Catalog = getParent_cid(selectList, l2.getCatId());
+                    if (!CollectionUtils.isEmpty(level3Catalog)) {
+                        List<Catelog2Vo.Catelog3VO> collect = level3Catalog.stream().map(l3 -> {
+                            Catelog2Vo.Catelog3VO catelog3VO = new Catelog2Vo.Catelog3VO(l2.getCatId().toString(), l3.getCatId().toString(), l3.getName());
+                            return catelog3VO;
+                        }).collect(Collectors.toList());
+                        catelog2VO.setCatalog3List(collect);
+                    }
+                    return catelog2VO;
+                }).collect(Collectors.toList());
+            }
+            return catelog2VOS;
+        }));
+        return parentCid;
+    }
+
     private List<Long> findParentPath(Long catelogId, List<Long> path) {
         // 收集当前节点
         path.add(catelogId);
@@ -111,6 +145,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 }).collect(Collectors.toList());
 
         return childCategoryEntityList;
+    }
+
+    private List<CategoryEntity> getParent_cid(List<CategoryEntity> selectList, Long parentCid) {
+        return selectList.stream().filter(o -> o.getParentCid().equals(parentCid)).collect(Collectors.toList());
     }
 
 }
