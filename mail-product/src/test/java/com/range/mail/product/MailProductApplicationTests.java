@@ -1,7 +1,5 @@
 package com.range.mail.product;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.range.mail.product.entity.BrandEntity;
 import com.range.mail.product.service.AttrGroupService;
 import com.range.mail.product.service.BrandService;
 import com.range.mail.product.service.CategoryService;
@@ -9,9 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest
 @Slf4j
@@ -26,6 +26,19 @@ class MailProductApplicationTests {
 
     @Autowired
     AttrGroupService attrGroupService;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
+
+    @Test
+    public void testRedis(){
+        ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
+        ops.set("hello","world_"+ UUID.randomUUID().toString());
+        ops.get("hello");
+        log.info("redis中hello的key值");
+
+    }
 
     @Test
     public void findPath(){
@@ -46,9 +59,6 @@ class MailProductApplicationTests {
 //        List<BrandEntity> list = brandService.list(new QueryWrapper<BrandEntity>().eq("brand_id",1));
 //        System.out.print("保存成功");
 //        System.out.print(list.get(0).getName());
-
-
-
     }
 
 }

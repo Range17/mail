@@ -1,10 +1,14 @@
 package com.range.mail.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.range.mail.product.entity.CategoryBrandRelationEntity;
 import com.range.mail.product.service.CategoryBrandRelationService;
 import com.range.mail.product.vo.Catelog2Vo;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,6 +33,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -92,6 +99,46 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Map<String, List<Catelog2Vo>> getCatalogJson() {
+        /**
+         * 1. SpringBoot2.0之后默认使用 lettuce 作为操作 redis 的客户端，lettuce 使用 Netty 进行网络通信
+         * 2. lettuce 的 bug 导致 Netty 堆外内存溢出 -Xmx300m   Netty 如果没有指定对外内存 默认使用 JVM 设置的参数
+                *      可以通过 -Dio.netty.maxDirectMemory 设置堆外内存
+                * 解决方案：不能仅仅使用 -Dio.netty.maxDirectMemory 去调大堆外内存
+                *      1. 升级 lettuce 客户端   2. 切换使用 jedis
+         *
+         *      RedisTemplate 对 lettuce 与 jedis 均进行了封装 所以直接使用 详情见：RedisAutoConfiguration 类
+         */
+
+        /**
+         * - 空结果缓存：解决缓存穿透
+         *
+         * - 设置过期时间（加随机值）：解决缓存雪崩
+         *
+         * - 加锁：解决缓存击穿
+         */
+
+        // 给缓存中放入JSON字符串，取出JSON字符串还需要逆转为能用的对象类型
+
+        //查询缓存
+        String catalogJSON = stringRedisTemplate.opsForValue().get("catalogJSON");
+        if(StringUtils.isEmpty(catalogJSON)){
+            //缓存中没有，从数据库中查询
+            Map<String, List<Catelog2Vo>> catalogJsonFromDB = getCatalogJsonFromDb();
+
+            //将对象转为json放入缓存中
+            String s = JSON.toJSONString(catalogJsonFromDB);
+            stringRedisTemplate.opsForValue().set("catalogJSON",s);
+            return catalogJsonFromDB;
+        }
+
+        //转为指定的对象
+        Map<String, List<Catelog2Vo>> result = JSON.parseObject(catalogJSON,new TypeReference<Map<String, List<Catelog2Vo>>>(){});
+        return result;
+    }
+
+
+    //从数据库查询并封装分类数据
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDb() {
         List<CategoryEntity> selectList = baseMapper.selectList(null);
         List<CategoryEntity> level1Categories = getParent_cid(selectList, 0L);
 
