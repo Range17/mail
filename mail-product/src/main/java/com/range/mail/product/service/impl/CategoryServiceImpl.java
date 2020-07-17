@@ -8,6 +8,8 @@ import com.range.mail.product.vo.Catelog2Vo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.util.Times;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -39,6 +41,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -124,7 +129,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         String catalogJSON = stringRedisTemplate.opsForValue().get("catalogJSON");
         if(StringUtils.isEmpty(catalogJSON)){
             //缓存中没有，从数据库中查询
-            Map<String, List<Catelog2Vo>> catalogJsonFromDB = getCatalogJsonFromWithRedisLock();
+            Map<String, List<Catelog2Vo>> catalogJsonFromDB = getCatalogJsonFromWithRedissonLock();
 
             //将对象转为json放入缓存中
             String s = JSON.toJSONString(catalogJsonFromDB);
@@ -138,7 +143,22 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return result;
     }
 
-    //实现redis分布式锁
+    //缓存如何和数据库保持一致
+    //使用redisson来实现分布式锁
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromWithRedissonLock() throws InterruptedException {
+
+        RLock lock = redissonClient.getLock("catalogJson-lock");
+        lock.lock();
+        Map<String, List<Catelog2Vo>> dataFromDb;
+        try {
+            dataFromDb = getDataFromDb();
+        } finally  {
+           lock.unlock();
+        }
+        return dataFromDb;
+    }
+
+        //实现redis分布式锁
     public Map<String, List<Catelog2Vo>> getCatalogJsonFromWithRedisLock() throws InterruptedException {
         String uuid = UUID.randomUUID().toString();
         Boolean lockResult = stringRedisTemplate.opsForValue().setIfAbsent("lock", uuid,300, TimeUnit.DAYS);
