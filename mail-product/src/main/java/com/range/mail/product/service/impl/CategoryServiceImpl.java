@@ -11,6 +11,7 @@ import org.bouncycastle.util.Times;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,15 @@ import com.range.mail.product.service.CategoryService;
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
+
+    /**
+     *  @Cacheable:触发将数据保存到缓存的操作
+     *  @CacheEvict：触发将数据从缓存删除的操作
+     *  @CachePut：不影响方法执行更新缓存
+     *  @Caching：组合以上多个操作
+     *  @CacheConfig：在类级别共享缓存的相同配置
+     */
+
 
     @Autowired
     CategoryDao categoryDao;
@@ -100,6 +110,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     }
 
+    @Cacheable({"category"})
+    //代表当前方法的结果需要缓存
+    //1、如果缓存有，方法不用调用
+    //2、如果缓存中没有，会调用方法，最后将结果放入缓存
     @Override
     public List<CategoryEntity> getLevel1Categories() {
         return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
