@@ -29,6 +29,7 @@ import com.range.common.utils.Query;
 import com.range.mail.product.dao.CategoryDao;
 import com.range.mail.product.entity.CategoryEntity;
 import com.range.mail.product.service.CategoryService;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service("categoryService")
@@ -36,10 +37,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     /**
      *  @Cacheable:触发将数据保存到缓存的操作
-     *  @CacheEvict：触发将数据从缓存删除的操作
+     *  @CacheEvict：触发将数据从缓存删除的操作（在更新上面使用）
      *  @CachePut：不影响方法执行更新缓存
      *  @Caching：组合以上多个操作
      *  @CacheConfig：在类级别共享缓存的相同配置
+     */
+
+    /**
+     * spring chache的不足
+     * 1、读模式
+     *     缓存穿透：查询一个null数据。解决：缓存空数据。SpringCache:cache-null-value=true
+     *     缓存击穿：大量并发进来同时查询一个正好过期的数据。解决：加锁 redisson，占位锁，springCache：默认无加锁，需要加sync=true(加锁，解决击穿问题)
+     *         @Cacheable(value = "category",key = "#root.method.name",sync=true)
+     *     缓存雪崩：大量的key同时过期，解决：加随机时间
+     * 2、写模式（缓存数据库一致）
+     *      读写加锁（适用于读多写少的情况下）
+     *      引入canal（能同步到mysql的更新）
+     *      读多写多（直接去数据库查询即可）
+     *
+     *      常规数据（读多写少，即时性，一致性要求不高的数据） 使用springcache满足效果
+     *
+     *      特殊数据：特殊设计
      */
 
 
@@ -84,7 +102,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public void removeMenuByIds(List<Long> asList) {
-
         //TODO 1.检查当前删除的菜单是否被别的地方引用
         baseMapper.deleteBatchIds(asList);
     }
@@ -100,8 +117,20 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     /**
      * 级联更新所有关联的数据
+     * @CacheEvice:失效模式
      * @param category
      */
+//    @CacheEvict(value = "category",key = "'getLevel1Categorys'")
+
+    //同时清除多个
+    @Caching(evict = {
+            @CacheEvict(value = "category",key = "'getLevel1Categorys'"),
+            @CacheEvict(value = "category",key = "getCatalogJson")
+    })
+
+//    删除所有category分区下的数据
+//    @CacheEvict(value = "category",allEntries = true)
+    @Transactional
     @Override
     public void updateCascade(CategoryEntity category) {
         this.updateById(category);
@@ -110,17 +139,65 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     }
 
-    @Cacheable({"category"})
+    //每一个需要缓存的数据需要我们制定放到哪个名字里面 category
+//    @Cacheable({"category"})
     //代表当前方法的结果需要缓存
     //1、如果缓存有，方法不用调用
     //2、如果缓存中没有，会调用方法，最后将结果放入缓存
+
+    /**cacheable后的默认行为
+     * 1、如果缓存中有，方法不用调用（打断点可体验）
+     * 2、key默认自动生成，缓存的名字：SimpleKey
+     * 3、缓存的value值，默认使用jdk序列化机制，将序列化的数据存到redis
+     * 4、默认ttl时间 -1；永不过期
+     */
+
+    /**
+     * 自定义cacheable中的问题
+     *  1、指定生成的缓存使用的key：下图level1Category
+     *  2、指定缓存的数据存过时间：在配置文件设置
+     *  3、将数据保存未json格式
+     */
+
+    //    @Cacheable({"category"})iba
+    @Cacheable(value = {"category"},key = "'getLevel1Categorys'")
     @Override
     public List<CategoryEntity> getLevel1Categories() {
         return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
+//    getcatalogJson中是手动将数据放到缓存中，而现在只要引入这个注解即可
+    @Cacheable(value = "category",key = "#root.method.name")
     @Override
     public Map<String, List<Catelog2Vo>> getCatalogJson() throws InterruptedException {
+        List<CategoryEntity> selectList = baseMapper.selectList(null);
+        List<CategoryEntity> level1Categories = getParent_cid(selectList, 0L);
+
+        Map<String, List<Catelog2Vo>> parentCid = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            List<CategoryEntity> categoryEntities = getParent_cid(selectList, v.getCatId());
+            List<Catelog2Vo> catelog2VOS = null;
+            if (!CollectionUtils.isEmpty(categoryEntities)) {
+                catelog2VOS = categoryEntities.stream().map(l2 -> {
+                    Catelog2Vo catelog2VO = new Catelog2Vo(v.getCatId().toString(), null, l2.getCatId().toString(), l2.getName());
+                    List<CategoryEntity> level3Catalog = getParent_cid(selectList, l2.getCatId());
+                    if (!CollectionUtils.isEmpty(level3Catalog)) {
+                        List<Catelog2Vo.Catelog3VO> collect = level3Catalog.stream().map(l3 -> {
+                            Catelog2Vo.Catelog3VO catelog3VO = new Catelog2Vo.Catelog3VO(l2.getCatId().toString(), l3.getCatId().toString(), l3.getName());
+                            return catelog3VO;
+                        }).collect(Collectors.toList());
+                        catelog2VO.setCatalog3List(collect);
+                    }
+                    return catelog2VO;
+                }).collect(Collectors.toList());
+            }
+            return catelog2VOS;
+        }));
+
+        return parentCid;
+    }
+
+    //    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJson2() throws InterruptedException {
         /**
          * 1. SpringBoot2.0之后默认使用 lettuce 作为操作 redis 的客户端，lettuce 使用 Netty 进行网络通信
          * 2. lettuce 的 bug 导致 Netty 堆外内存溢出 -Xmx300m   Netty 如果没有指定对外内存 默认使用 JVM 设置的参数
