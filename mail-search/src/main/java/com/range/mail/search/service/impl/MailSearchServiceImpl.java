@@ -50,10 +50,13 @@ public class MailSearchServiceImpl implements MailSearchService {
     public SearchResult search(SearchParam searchParam) {
         SearchResult result = null;
 
+        //1、准备检索请求
         SearchRequest request = buildSearchRequest(searchParam);
         try {
-
+            //2、执行检索请求
             SearchResponse response = highLevelClient.search(request, ElasticSearchConfig.COMMON_OPTIONS);
+
+            //3、分析响应数据封装成我们需要的格式
             result = buildSearchResult(response, searchParam);
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,13 +67,13 @@ public class MailSearchServiceImpl implements MailSearchService {
 
     /**
      * 构建请求数据
-     *
+     * 模糊匹配、过滤（按照属性、分类、品牌、价格区间、库存）、排序、分页、高亮、聚合分析
      * @return
      */
     private SearchRequest buildSearchRequest(SearchParam param) {
 
         // 构建 DSL 语句
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();//构建dsl语句
 
         /**
          * 查询：模糊匹配 过滤(按照属性，分类，品牌，价格区间， 库存)
@@ -78,20 +81,21 @@ public class MailSearchServiceImpl implements MailSearchService {
 
         // 1 构建 bool-query
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        // 1.1 must
+        // 1.1 must-模糊匹配
         if (!StringUtils.isEmpty(param.getKeyword())) {
             boolQueryBuilder.must(QueryBuilders.matchQuery("skuTitle", param.getKeyword()));
         }
 
-        // 1.2 bool-filter
+        // 1.2 bool-filter -按照三级分类id查询
         if (!ObjectUtils.isEmpty(param.getCatalog3Id())) {
             boolQueryBuilder.filter(QueryBuilders.termQuery("catalogId", param.getCatalog3Id()));
         }
-
+        // 1.2 bool-filter -按照品牌id查询
         if (!CollectionUtils.isEmpty(param.getBrandId()) && param.getBrandId().size() > 0) {
             boolQueryBuilder.filter(QueryBuilders.termsQuery("brandId", param.getBrandId()));
         }
 
+        // 1.2 bool-filter -按照所有指定的属性进行查询
         if (!CollectionUtils.isEmpty(param.getAttrs()) && param.getAttrs().size() > 0) {
             for (String attr : param.getAttrs()) {
                 BoolQueryBuilder nestedBoolQuery = QueryBuilders.boolQuery();
@@ -108,10 +112,12 @@ public class MailSearchServiceImpl implements MailSearchService {
             }
         }
 
+        // 1.2 bool-filter -按照库存是否有进行查询
         if (param.getHasStock() != null) {
             boolQueryBuilder.filter(QueryBuilders.termQuery("hasStock", param.getHasStock() == 1));
         }
 
+        // 1.2 bool-filter -按照价格区间进行查询
         if (!StringUtils.isEmpty(param.getSkuPrice())) {
             RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("skuPrice");
             String[] priceRange = param.getSkuPrice().split("_");
