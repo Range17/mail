@@ -13,5 +13,23 @@
         <result property="catelogId" column="catelog_id"/>
     </resultMap>
 
+    <resultMap id="spuItemAttrGroupVO" type="com.range.mail.product.vo.SpuItemAttrGroupVo">
+        <result property="groupName" column="attr_group_name"></result>
+        <collection property="attrs" ofType="com.range.mail.product.vo.Attr">
+            <result column="attr_name" property="attrName"></result>
+            <result column="attr_value" property="attrValue"></result>
+        </collection>
+    </resultMap>
+    <select id="getAttrGroupWithAttrsBySpuIdAndCatalogId"
+            resultMap="spuItemAttrGroupVO">
+        select pav.spu_id, ag.attr_group_name, ag.attr_group_id, aar.attr_id, attr.attr_name, pav.attr_value
+        from catmall_pms.pms_attr_group ag
+                 left join catmall_pms.pms_attr_attrgroup_relation aar on aar.attr_group_id = ag.attr_group_id
+                 left join catmall_pms.pms_attr attr on attr.attr_id = aar.attr_id
+                 left join catmall_pms.pms_product_attr_value pav on pav.attr_id = attr.attr_id
+        where ag.catelog_id = #{catalogId}
+          and pav.spu_id = #{spuId}
+    </select>
+
 
 </mapper>

@@ -1,9 +1,17 @@
 package com.range.mail.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.range.common.utils.PageUtils;
+import com.range.common.utils.Query;
+import com.range.mail.product.dao.AttrGroupDao;
 import com.range.mail.product.entity.AttrEntity;
+import com.range.mail.product.entity.AttrGroupEntity;
+import com.range.mail.product.service.AttrGroupService;
 import com.range.mail.product.service.AttrService;
-import com.range.mail.product.vo.AttrGroupRelationVo;
 import com.range.mail.product.vo.AttrGroupWithAttrsVo;
+import com.range.mail.product.vo.SpuItemAttrGroupVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,16 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.range.common.utils.PageUtils;
-import com.range.common.utils.Query;
-
-import com.range.mail.product.dao.AttrGroupDao;
-import com.range.mail.product.entity.AttrGroupEntity;
-import com.range.mail.product.service.AttrGroupService;
 
 
 @Service("attrGroupService")
@@ -87,4 +85,8 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
         return null;
     }
 
+    @Override
+    public List<SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuIdAndCatalogId(Long spuId, Long catalogId) {
+        return this.baseMapper.getAttrGroupWithAttrsBySpuIdAndCatalogId(spuId, catalogId);
+    }
 }
