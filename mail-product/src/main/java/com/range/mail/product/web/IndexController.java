@@ -3,7 +3,6 @@ package com.range.mail.product.web;
 import com.range.mail.product.entity.CategoryEntity;
 import com.range.mail.product.service.CategoryService;
 import com.range.mail.product.vo.Catelog2Vo;
-import org.redisson.Redisson;
 import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -40,7 +39,7 @@ public class IndexController {
     }
 
     @ResponseBody
-    @GetMapping("/index/catalog.json")
+    @GetMapping("/static/index/catalog.json")
     public Map<String, List<Catelog2Vo>> getCatalogJson() throws InterruptedException {
         return categoryService.getCatalogJson();
     }
