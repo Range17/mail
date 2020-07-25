@@ -3,6 +3,9 @@ package com.range.mail.member.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.range.common.utils.PageUtils;
 import com.range.mail.member.entity.MemberEntity;
+import com.range.mail.member.vo.MemberLoginVo;
+import com.range.mail.member.vo.MemberRegisterVo;
+import com.range.mail.member.vo.SocialUser;
 
 import java.util.Map;
 
@@ -16,5 +19,12 @@ import java.util.Map;
 public interface MemberService extends IService<MemberEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    void register(MemberRegisterVo memberReisterVO);
+
+    MemberEntity login(MemberLoginVo memberLoginVO);
+
+
+    MemberEntity login(SocialUser socialUser) throws Exception;
 }
 

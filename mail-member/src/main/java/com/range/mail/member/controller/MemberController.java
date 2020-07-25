@@ -3,8 +3,15 @@ package com.range.mail.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.range.common.exception.BizCodeEnum;
+import com.range.mail.member.exception.PhoneExistException;
+import com.range.mail.member.exception.UsernameExistException;
 import com.range.mail.member.feign.CoupoFeignService;
+import com.range.mail.member.vo.MemberLoginVo;
+import com.range.mail.member.vo.MemberRegisterVo;
+import com.range.mail.member.vo.SocialUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import com.range.mail.member.entity.MemberEntity;
@@ -29,6 +36,38 @@ public class MemberController {
 
     @Autowired
     private CoupoFeignService coupoFeignService;
+
+
+    @PostMapping("/register")
+    public R register(@RequestBody MemberRegisterVo memberRegisterVO) {
+        try {
+            memberService.register(memberRegisterVO);
+        } catch (UsernameExistException e) {
+            return R.error(BizCodeEnum.USERNAME_EXIST_EXCEPTION.getCode(), BizCodeEnum.USERNAME_EXIST_EXCEPTION.getMsg());
+        } catch (PhoneExistException e) {
+            return R.error(BizCodeEnum.PHONE_EXIST_EXCEPTION.getCode(), BizCodeEnum.PHONE_EXIST_EXCEPTION.getMsg());
+        }
+        return R.ok();
+    }
+
+    @PostMapping("/oauth2/login")
+    public R oauthLogin(@RequestBody SocialUser socialUser) throws Exception {
+        MemberEntity memberEntity = memberService.login(socialUser);
+        if (!ObjectUtils.isEmpty(memberEntity))
+            return R.ok().setData(memberEntity);
+        else
+            return R.error(BizCodeEnum.LOGIN_EXCEPTION.getCode(), BizCodeEnum.LOGIN_EXCEPTION.getMsg());
+    }
+
+    @PostMapping("/login")
+    public R login(@RequestBody MemberLoginVo memberLoginVO) {
+        MemberEntity memberEntity = memberService.login(memberLoginVO);
+        if (!ObjectUtils.isEmpty(memberEntity)) {
+            return R.ok().setData(memberEntity);
+        } else {
+            return R.error(BizCodeEnum.LOGIN_EXCEPTION.getCode(), BizCodeEnum.LOGIN_EXCEPTION.getMsg());
+        }
+    }
 
     @GetMapping("/coupon")
     public R test(){
