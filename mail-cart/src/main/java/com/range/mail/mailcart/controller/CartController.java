@@ -1,10 +1,11 @@
 package com.range.mail.mailcart.controller;
 
-import com.range.common.constant.AuthServerConstant;
 import com.range.mail.mailcart.interceptor.CartInterceptor;
-import com.range.mail.mailcart.serivce.CartSerivce;
+import com.range.mail.mailcart.serivce.CartService;
 import com.range.mail.mailcart.to.UserInfoTo;
+import com.range.mail.mailcart.vo.CartItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ import java.util.concurrent.ExecutionException;
 public class CartController {
 
     @Autowired
-    CartSerivce cartSerivce;
+    CartService cartService;
 
     /**
      * 如果第一次使用jd，浏览器会给一个临时身份放在cookie，user-key：标识用户身份，一个月后过期
@@ -44,8 +45,23 @@ public class CartController {
     public String addToCart(@RequestParam("skuId") Long skuId,
                             @RequestParam("num") Integer num,
                             RedirectAttributes attributes) throws ExecutionException, InterruptedException {
-        cartSerivce.addToCart(skuId, num);
+        cartService.addToCart(skuId, num);
         attributes.addAttribute("skuId", skuId);
         return "redirect:http://cart.catmall.com/addToCartSuccess.html";
     }
+
+    /**
+     * 解决页面刷新重复提交的问题
+     *
+     * @param skuId
+     * @param model
+     * @return
+     */
+    @GetMapping("/addToCartSuccess.html")
+    public String addToCartSuccessPage(@RequestParam("skuId") Long skuId, Model model) {
+        CartItem cartItem = cartService.getCartItem(skuId);
+        model.addAttribute("item", cartItem);
+        return "success";
+    }
+
 }

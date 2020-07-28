@@ -5,7 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.range.common.utils.R;
 import com.range.mail.mailcart.feign.ProductFeign;
 import com.range.mail.mailcart.interceptor.CartInterceptor;
-import com.range.mail.mailcart.serivce.CartSerivce;
+import com.range.mail.mailcart.serivce.CartService;
 import com.range.mail.mailcart.to.UserInfoTo;
 import com.range.mail.mailcart.vo.CartItem;
 import com.range.mail.mailcart.vo.SkuInfoVo;
@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
-public class CartServiceImpl implements CartSerivce {
+public class CartServiceImpl implements CartService {
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
@@ -88,6 +88,13 @@ public class CartServiceImpl implements CartSerivce {
             cartOps.put(skuId.toString(), JSON.toJSONString(cartItem));
             return cartItem;
         }
+    }
+
+    @Override
+    public CartItem getCartItem(Long skuId) {
+        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+        String res = (String) cartOps.get(skuId.toString());
+        return JSON.parseObject(res, CartItem.class);
     }
 
     /**

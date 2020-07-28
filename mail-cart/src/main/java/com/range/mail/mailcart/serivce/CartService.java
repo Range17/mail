@@ -4,7 +4,7 @@ import com.range.mail.mailcart.vo.CartItem;
 
 import java.util.concurrent.ExecutionException;
 
-public interface CartSerivce {
+public interface CartService {
 
     /**
      * 添加到购物车
@@ -13,4 +13,6 @@ public interface CartSerivce {
      * @return
      */
     CartItem addToCart(Long skuId, Integer num) throws ExecutionException, InterruptedException;
+
+    CartItem getCartItem(Long skuId);
 }
