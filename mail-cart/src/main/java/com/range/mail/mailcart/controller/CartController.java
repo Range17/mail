@@ -64,4 +64,22 @@ public class CartController {
         return "success";
     }
 
+    @GetMapping("/countItem")
+    public String countItem(@RequestParam("skuId") Long skuId, @RequestParam("num") Integer num) {
+        cartService.countItem(skuId, num);
+        return "redirect:http://cart.catmall.com/cart.html";
+    }
+
+    @GetMapping("/deleteItem")
+    public String deleteItem(@RequestParam("skuId") Long skuId) {
+        cartService.deleteItem(skuId);
+        return "redirect:http://cart.catmall.com/cart.html";
+    }
+
+    @GetMapping("/checkItem")
+    public String checkItem(@RequestParam("skuId") Long skuId, @RequestParam("checked") Integer checked) {
+        cartService.checkItem(skuId, checked);
+        return "redirect:http://cart.catmall.com/cart.html";
+    }
+
 }
