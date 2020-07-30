@@ -18,8 +18,12 @@ public class MyRabbitConfig {
         return new Jackson2JsonMessageConverter();
     }
 
+    /**
+     * 定制RabbitTemplate
+     */
     @PostConstruct
     public void initRabbitTemplate() {
+        //设置确认回调
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
 
         });
