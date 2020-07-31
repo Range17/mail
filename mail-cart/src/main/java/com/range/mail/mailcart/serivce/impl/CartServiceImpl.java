@@ -20,6 +20,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -66,8 +67,8 @@ public class CartServiceImpl implements CartService {
             CompletableFuture<Void> getSkuInfoTask = CompletableFuture.runAsync(() -> {
                 // 1 远程调用查询商品信息
                 R info = productFeign.info(skuId);
-                SkuInfoVo data = (SkuInfoVo) info.getData("skuInfo", new TypeReference<SkuInfoVo>() {
-                });
+                SkuInfoVo data = (SkuInfoVo) info.getData("skuInfo", new TypeReference<SkuInfoVo>() {});
+
                 // 2 将新商品添加到购物车
                 cartItem.setChecked(true);
                 cartItem.setCount(num);
@@ -76,11 +77,13 @@ public class CartServiceImpl implements CartService {
                 cartItem.setSkuId(skuId);
                 cartItem.setPrice(data.getPrice());
             }, threadPoolExecutor);
+
             // 3 远程查询 sku 的属性信息
             CompletableFuture<Void> getSkuSaleAttrValuesTask = CompletableFuture.runAsync(() -> {
                 List<String> skuSaleAttrValues = productFeign.getSkuSaleAttrValues(skuId);
                 cartItem.setSkuAttrs(skuSaleAttrValues);
             }, threadPoolExecutor);
+
             CompletableFuture.allOf(getSkuInfoTask, getSkuSaleAttrValuesTask).get();
 
             cartOps.put(skuId.toString(), JSON.toJSONString(cartItem));
@@ -164,6 +167,31 @@ public class CartServiceImpl implements CartService {
         cartItem.setCount(num);
         BoundHashOperations<String, Object, Object> cartOps = getCartOps();
         cartOps.put(skuId.toString(), JSON.toJSONString(cartItem));
+    }
+
+    @Override
+    public List<CartItem> getUserCartItems() {
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        if (userInfoTo.getUserId() == null) {
+            return null;
+        }else{
+            String cartKey = CART_PREFIX + userInfoTo.getUserId();
+
+            //获取购物车中所有信息
+            List<CartItem> cartItems = getCartItems(cartKey);
+
+            //获取所有被选中的购物项
+            List<CartItem> collect = cartItems.stream().filter(cartItem -> cartItem.getChecked()).map(
+                    item->{
+                        //更新为最新的价格
+                        R price = productFeign.getPrice(item.getSkuId());
+                        String data = (String) price.get("data");
+                        item.setPrice(new BigDecimal(data));
+                        return item;
+                    }
+            ).collect(Collectors.toList());
+            return collect;
+        }
     }
 
 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -19,6 +20,15 @@ public class CartController {
 
     @Autowired
     CartService cartService;
+
+
+    /**
+     * 获取当前购物车数据
+     */
+    @GetMapping("/currentUserCartItems")
+    public List<CartItem> getCurrentUserCartItems(){
+        return cartService.getUserCartItems();
+    }
 
     /**
      * 如果第一次使用jd，浏览器会给一个临时身份放在cookie，user-key：标识用户身份，一个月后过期

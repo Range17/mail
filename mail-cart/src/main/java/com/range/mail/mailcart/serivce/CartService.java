@@ -3,6 +3,7 @@ package com.range.mail.mailcart.serivce;
 import com.range.mail.mailcart.vo.Cart;
 import com.range.mail.mailcart.vo.CartItem;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public interface CartService {
@@ -55,4 +56,10 @@ public interface CartService {
      * @param num
      */
     void countItem(Long skuId, Integer num);
+
+    /**
+     * 获取当前用户下购物车数据
+     * @return
+     */
+    List<CartItem> getUserCartItems();
 }
