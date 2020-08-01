@@ -1,5 +1,6 @@
 package com.range.mail.product.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
 import com.range.common.constant.ProductConstant;
 import com.range.common.exception.RRException;
 import com.range.common.to.SkuReductionTo;
@@ -276,7 +277,8 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         Map<Long,Boolean> stockMap = null;
         try{
             R<List<SkuHasStockVo>> skusHasStock = wareFeignService.getSkuHasStock(skuIdList);
-            stockMap = skusHasStock.getData().stream().collect(Collectors.toMap(SkuHasStockVo::getSkuId,item->item.isHasStock()));
+            TypeReference<List<SkuHasStockVo>> typeReference = new TypeReference<List<SkuHasStockVo>>() {};
+            stockMap = skusHasStock.getData(typeReference).stream().collect(Collectors.toMap(SkuHasStockVo::getSkuId,item->item.isHasStock()));
         }catch (Exception e){
             log.error("库存服务查询异常:原因{}",e);
         }
@@ -326,6 +328,12 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
              */
         }
 
+    }
+
+    @Override
+    public SpuInfoEntity getSpuInfoBySkuId(Long skuId) {
+        SkuInfoEntity skuInfoEntity = skuInfoService.getById(skuId);
+        return getById(skuInfoEntity.getSpuId());
     }
 
 
