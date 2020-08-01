@@ -60,10 +60,11 @@ public class CartServiceImpl implements CartService {
 
         String res = (String) cartOps.get(skuId.toString());
         if (StringUtils.isEmpty(res)) {
+
             CartItem cartItem = new CartItem();
             // 购物车无此商品
 
-            //runAsync()是异步任务，threadPoolExcutor是线程
+            //runAsync()是异步任务，threadPoolExcutor是线程池
             CompletableFuture<Void> getSkuInfoTask = CompletableFuture.runAsync(() -> {
                 // 1 远程调用查询商品信息
                 R info = productFeign.info(skuId);
@@ -84,6 +85,7 @@ public class CartServiceImpl implements CartService {
                 cartItem.setSkuAttrs(skuSaleAttrValues);
             }, threadPoolExecutor);
 
+            //等待异步任务执行完成
             CompletableFuture.allOf(getSkuInfoTask, getSkuSaleAttrValuesTask).get();
 
             cartOps.put(skuId.toString(), JSON.toJSONString(cartItem));
