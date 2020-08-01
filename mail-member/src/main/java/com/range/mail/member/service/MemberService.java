@@ -20,8 +20,17 @@ public interface MemberService extends IService<MemberEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
 
+    /**
+     * 注册
+     * @param memberReisterVO
+     */
     void register(MemberRegisterVo memberReisterVO);
 
+    /**
+     * 登录
+     * @param memberLoginVO
+     * @return
+     */
     MemberEntity login(MemberLoginVo memberLoginVO);
 
 

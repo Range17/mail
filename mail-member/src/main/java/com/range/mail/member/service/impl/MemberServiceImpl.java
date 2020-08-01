@@ -68,6 +68,11 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         this.baseMapper.insert(memberEntity);
     }
 
+    /**
+     * 登录功能
+     * @param memberLoginVo
+     * @return
+     */
     @Override
     public MemberEntity login(MemberLoginVo memberLoginVo) {
         String account = memberLoginVo.getAccount();

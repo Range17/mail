@@ -53,10 +53,11 @@ public class MemberController {
     @PostMapping("/oauth2/login")
     public R oauthLogin(@RequestBody SocialUser socialUser) throws Exception {
         MemberEntity memberEntity = memberService.login(socialUser);
-        if (!ObjectUtils.isEmpty(memberEntity))
+        if (!ObjectUtils.isEmpty(memberEntity)) {
             return R.ok().setData(memberEntity);
-        else
+        } else {
             return R.error(BizCodeEnum.LOGIN_EXCEPTION.getCode(), BizCodeEnum.LOGIN_EXCEPTION.getMsg());
+        }
     }
 
     @PostMapping("/login")
