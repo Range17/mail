@@ -17,6 +17,7 @@ import com.range.mail.order.interceptor.LoginUserInterceptor;
 import com.range.mail.order.service.OrderItemService;
 import com.range.mail.order.to.OrderCreateTo;
 import com.range.mail.order.vo.*;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -158,7 +159,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         CompletableFuture.allOf(getAddressedTask, getCartItemsTask).get();
         return orderConfirmVo;
     }
-
+    //下单是高并发场景，并不适合使用seata
+    @GlobalTransactional
     @Transactional
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
