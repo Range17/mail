@@ -17,7 +17,6 @@ import com.range.mail.order.interceptor.LoginUserInterceptor;
 import com.range.mail.order.service.OrderItemService;
 import com.range.mail.order.to.OrderCreateTo;
 import com.range.mail.order.vo.*;
-import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -160,7 +159,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
     //下单是高并发场景，并不适合使用seata
-    @GlobalTransactional
+//    @GlobalTransactional
+
+
     @Transactional
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
@@ -218,6 +219,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 lockVo.setLocks(locks);
 
                 //远程锁定库存
+
+                //保证最终一致性
+                //为了保证高并发，库存服务自己回滚，出异常发消息给库存服务
+                //库存服务自己解锁
                 R r = wareFeignService.lockOrder(lockVo);
                 if (r.getCode() == 0) {
                     // 锁定成功
