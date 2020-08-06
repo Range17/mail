@@ -1,6 +1,8 @@
 package com.range.mail.ware.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.range.common.to.mq.OrderTo;
+import com.range.common.to.mq.StockLockedTo;
 import com.range.common.utils.PageUtils;
 import com.range.mail.ware.entity.WareSkuEntity;
 import com.range.mail.ware.vo.SkuHasStockVo;
@@ -35,5 +37,13 @@ public interface WareSkuService extends IService<WareSkuEntity> {
      * @return
      */
     Boolean orderLockStock(WareSkuLockVo vo);
+
+    /**
+     * 解锁订单库存
+     * @param to
+     */
+    void unlockStock(StockLockedTo to);
+
+    void unlockStock(OrderTo orderTO);
 }
 
