@@ -267,7 +267,10 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
     @Override
     public void unlockStock(OrderTo orderTO) {
         String orderSn = orderTO.getOrderSn();
+
+        //查询订单状态
         WareOrderTaskEntity task = wareOrderTaskService.getOrderTaskByOrderSn(orderSn);
+
         Long id = task.getId();
         List<WareOrderTaskDetailEntity> entities = wareOrderTaskDetailService.list(
                 new QueryWrapper<WareOrderTaskDetailEntity>().eq("task_id", id)

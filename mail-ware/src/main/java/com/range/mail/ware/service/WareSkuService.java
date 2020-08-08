@@ -44,6 +44,10 @@ public interface WareSkuService extends IService<WareSkuEntity> {
      */
     void unlockStock(StockLockedTo to);
 
+    /**
+     * 防止订单服务卡顿，先解锁
+     * @param orderTO
+     */
     void unlockStock(OrderTo orderTO);
 }
 
