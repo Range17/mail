@@ -32,6 +32,8 @@ public class LoginUserInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+
+        //请求匹配放行
         String requestURI = request.getRequestURI();
         AntPathMatcher matcher = new AntPathMatcher();
         boolean status = matcher.match("/order/order/status/**", requestURI);
