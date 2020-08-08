@@ -53,6 +53,10 @@ public class OrderMQConfig {
                 "order-event-exchange", "order.release.order", new HashMap<>());
     }
 
+    /**
+     * 订单释放直接和库存释放进行绑定
+     * @return
+     */
     @Bean
     public Binding orderReleaseOtherBinding() {
         return new Binding("stock.release.stock.queue", Binding.DestinationType.QUEUE,

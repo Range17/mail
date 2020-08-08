@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.range.common.constant.OrderConstant;
 import com.range.common.exception.NoStockException;
 import com.range.common.to.SkuHasStockVo;
+import com.range.common.to.mq.OrderTo;
 import com.range.common.utils.R;
 import com.range.common.vo.MemberResponseVo;
 import com.range.mail.order.entity.OrderItemEntity;
@@ -18,6 +19,7 @@ import com.range.mail.order.service.OrderItemService;
 import com.range.mail.order.to.OrderCreateTo;
 import com.range.mail.order.vo.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -227,7 +229,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 if (r.getCode() == 0) {
                     // 锁定成功
                     responseVo.setOrderEntity(orderCreateTo.getOrderEntity());
-//                    rabbitTemplate.convertAndSend("order-event-exchange", "order.create.order", orderCreateTo.getOrderEntity());
+
+                    //订单创建成功，发送消息给MQ
+                    rabbitTemplate.convertAndSend("order-event-exchange", "order.create.order", orderCreateTo.getOrderEntity());
                     return responseVo;
                 } else {
                     // 锁定失败
@@ -410,4 +414,24 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderEntity;
     }
 
+    @Transactional
+    @Override
+    public void closeOrder(OrderEntity entity) {
+
+        //查询当前订单的最新状态
+        OrderEntity orderEntity = this.getById(entity.getId());
+
+        if (orderEntity.getStatus().equals(OrderStatusEnum.CREATE_NEW.getCode())) {
+            // 关闭订单
+            OrderEntity update = new OrderEntity();
+            update.setId(entity.getId());
+            update.setStatus(OrderStatusEnum.CANCLED.getCode());
+            this.updateById(update);
+            OrderTo orderTO = new OrderTo();
+            BeanUtils.copyProperties(orderEntity, orderTO);
+
+            //给mq发送信息
+            rabbitTemplate.convertAndSend("order-event-exchange", "order.release.other", orderTO);
+        }
+    }
 }
