@@ -227,8 +227,19 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
     @Override
     public void unlockStock(StockLockedTo to) {
-        StockLockedTo detail = to.getDetail();
+        StockDetailTo detail = to.getDetail();
         Long detailId = detail.getId();
+        /**1、查询数据库关于这个订单的锁定信息
+         *      有则证明库存锁定成功了
+         *      解锁
+         *          1、没有这个订单，必须解锁
+         *          2、有这个订单，不是解锁库存
+         *              订单状态：已取消：解锁库存
+         *                        没取消：不能解锁
+         *      没有
+         *          库存锁失败了，库存回滚，这种情况无需解锁
+         */
+
         WareOrderTaskDetailEntity byId = wareOrderTaskDetailService.getById(detailId);
         if (!ObjectUtils.isEmpty(byId)) {
             // 解锁
@@ -237,11 +248,13 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             String orderSn = taskEntity.getOrderSn();
             R r = orderFeignService.getOrderStatus(orderSn);
             if (r.getCode() == 0) {
+                //订单数据返回成功
                 OrderVo data = (OrderVo) r.getData(new TypeReference<OrderVo>() {});
                 if (data.getStatus() == 4 || ObjectUtils.isEmpty(data)) {
                     // 订单已经被取消了 才能解锁库存
-                    if (byId.getLockStatus() == 1)
+                    if (byId.getLockStatus() == 1) {
                         unlockStock(detail.getSkuId(), detail.getWareId(), detail.getSkuNum(), detailId);
+                    }
                 }
             } else {
                 // 消息拒绝以后重新放到队列里面 让别人继续消费解锁

@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 
+
+/**
+ * 解锁消息监听器
+ */
 @Service
 @RabbitListener(queues = {"stock.release.stock.queue"})
 public class StockReleaseListener {
