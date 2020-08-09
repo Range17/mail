@@ -3,9 +3,7 @@ package com.range.mail.order.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.range.common.utils.PageUtils;
 import com.range.mail.order.entity.OrderEntity;
-import com.range.mail.order.vo.OrderConfirmVo;
-import com.range.mail.order.vo.OrderSubmitVo;
-import com.range.mail.order.vo.SubmitOrderResponseVo;
+import com.range.mail.order.vo.*;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -48,5 +46,25 @@ public interface OrderService extends IService<OrderEntity> {
      * @param entity
      */
     void closeOrder(OrderEntity entity);
+
+
+    /**
+     * 获取订单的支付信息
+     */
+    PayVo getOrderPay(String orderSn);
+
+    /**
+     * 查询当前用户的所有订单数据
+     * @param params
+     * @return
+     */
+    PageUtils queryPageWithItems(Map<String, Object> params);
+
+    /**
+     * 处理支付宝的支付结果
+     * @param vo
+     * @return
+     */
+    String handlePayResult(PayAsyncVo vo);
 }
 
