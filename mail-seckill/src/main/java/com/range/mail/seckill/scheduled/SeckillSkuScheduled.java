@@ -32,7 +32,7 @@ public class SeckillSkuScheduled {
     public void uploadSeckillSkuLatest3Days() {
         // 重复上架无需处理
         log.info("上架秒杀的商品信息");
-        // 分布式锁 锁的业务执行完成 状态更新完成 释放锁以后 其他操作不会被阻塞很长时间
+        // 上架商品分布式锁 锁的业务执行完成 状态更新完成 释放锁以后 其他操作不会被阻塞很长时间
         RLock lock = redissonClient.getLock(UPLOAD_STOCK);
         lock.lock(10, TimeUnit.SECONDS);
         try {
