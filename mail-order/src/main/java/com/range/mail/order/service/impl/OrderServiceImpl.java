@@ -6,6 +6,7 @@ import com.range.common.constant.OrderConstant;
 import com.range.common.exception.NoStockException;
 import com.range.common.to.SkuHasStockVo;
 import com.range.common.to.mq.OrderTo;
+import com.range.common.to.mq.SeckillOrderTo;
 import com.range.common.utils.R;
 import com.range.common.vo.MemberResponseVo;
 import com.range.mail.order.entity.OrderItemEntity;
@@ -489,4 +490,28 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         return "success";
     }
+
+
+    @Override
+    public void createSeckillOrder(SeckillOrderTo seckillOrder) {
+        // TODO 保存完整的订单信息 现在只是个简单的占位方法
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderSn(seckillOrder.getOrderSn());
+        orderEntity.setMemberId(seckillOrder.getMemberId());
+        orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());
+        BigDecimal result = seckillOrder.getSeckillPrice().multiply(new BigDecimal("" + seckillOrder.getNum()));
+        orderEntity.setPayAmount(result);
+        this.save(orderEntity);
+
+        // TODO 保存订单项信息
+        OrderItemEntity orderItemEntity = new OrderItemEntity();
+        orderItemEntity.setOrderSn(seckillOrder.getOrderSn());
+        orderItemEntity.setRealAmount(result);
+
+        // TODO 获取当前SKU的详细信息进行设置 productFeign.getSpuInfoBySkuId()
+        orderItemEntity.setSkuQuantity(seckillOrder.getNum());
+
+        orderItemService.save(orderItemEntity);
+    }
+
 }
